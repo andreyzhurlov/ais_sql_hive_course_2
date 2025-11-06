@@ -1,0 +1,158 @@
+--JOIN-ы
+--14. Напишите запрос, возвращающий фамилию, ID отдела и наименование отдела для каждого сотрудника;
+select   e.last_name
+		,d.department_id
+		,d.department_name
+ from hr.employees e
+ join hr.departments d
+ on e.department_id = d.department_id;
+
+
+--15. Напишите запрос, возвращающий фамилию, JOB_ID, ID отдела и название отдела для всех сотрудников из 'Brasilia'.
+select 	e.last_name ,
+		j.job_title ,
+		d.department_name ,
+		l.city
+ from hr.employees e
+ join hr.departments d
+ on e.department_id = d.department_id
+ join hr.jobs j
+ on e.job_id  = j.job_id
+ join hr.locations l
+ on d.location_id = l.location_id
+ and l.city  = 'Brasilia';
+
+
+
+-----------------------------------------------------------------------------
+-- Соединения (JOIN-ы)
+-----------------------------------------------------------------------------
+select * from store.clients c ;
+-- Задание 1.1: Найти клиентов, которые делали хотя бы один заказ
+select distinct c.*
+ from store.clients c
+ join store.orders o
+   on c.id = o.client_id ;
+  
+--1.2
+-- + Найти клиентов, которые НЕ делали заказы
+select c.*
+ from store.clients c
+ left join store.orders o
+   on c.id  = o.client_id
+where o.client_id  is null;
+
+-- Задание 5: Найти города, из которых ниразу не дедали заказы
+select distinct c1.city
+ from store.clients c1
+where c1.city  not in (
+						select distinct c2.city
+						  from store.clients c2
+						  join store.orders o
+						    on c2.id = o.client_id);
+
+
+
+
+
+------------------------------------------------------------------------------------
+-- Подазпросы
+------------------------------------------------------------------------------------
+select last_name, salary
+from hr.employees
+where  salary >
+              (select salary
+               from hr.employees
+               where  employee_id = 110);
+select last_name, salary
+from hr.employees
+where  salary > any
+              (select salary
+               from hr.employees
+               where  last_name = 'Ivanov');
+             
+             
+             
+select last_name, job_id
+from hr.employees
+where  job_id =
+               (select job_id
+                from hr.employees
+                where  employee_id = 110);           
+              
+              
+select last_name, job_id
+from hr.employees
+where  job_id in
+               (select job_id
+                from hr.employees
+                where  last_name = 'Ivanov');
+-- потом переписать на CTE
+select last_name, job_id, salary
+from hr.employees
+where  job_id = 
+               (select job_id
+                from hr.employees
+                where employee_id = 110)
+AND    salary >
+               (select salary
+                from hr.employees
+                where employee_id = 110);
+				
+				
+select * from hr.jobs;
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < any
+                   (select salary
+                    from hr.employees
+                    where  job_id = 6)
+AND    job_id <> 6;
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < all
+                   (select salary
+                    from hr.employees
+                    where  job_id = 6)
+and job_id <> 6;
+-- Вывести сотрудника, который является менеджером и с зарплатой более N
+select  employee_id,
+		salary,
+		last_name
+from hr.employees t1
+where exists
+			(select employee_id
+			  from hr.employees t2
+			 where t2.manager_id = t1.employee_id
+			 and t2.salary > 100000);
+-- Найти такие должности, которых нет среди подчинённых сотрудников
+select *
+from hr.jobs
+where not exists
+				(select * from hr.employees
+				 where employees.job_id = jobs.job_id
+				   and employees.manager_id is not null);
+--Найти всех сотрудников, кто не менеджеры
+select emp.employee_id,
+	   emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select mgr.manager_id
+                           from hr.employees mgr);
+							
+							
+select emp.employee_id,
+	   emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select distinct coalesce(mgr.manager_id, 0)
+                           from hr.employees mgr);
+                          
+select emp.employee_id,
+	   emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select manager_id
+                           from hr.employees mgr
+                          where mgr.manager_id is not null);     
+

@@ -1,0 +1,90 @@
+CREATE SCHEMA IF NOT EXISTS store;
+
+------------------------------------------------
+------------------------------------------------
+
+-- Удаляем таблицу
+drop table if exists store.clients;
+
+------------------------------------------------
+------------------------------------------------
+
+CREATE TABLE If NOT EXISTS store.clients (
+    row_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    city VARCHAR(50)
+);
+
+
+
+
+------------------------------------------------
+------------------------------------------------
+
+-- Корректные данные
+INSERT INTO store.clients (id, first_name, last_name, birth_date, email, phone, city) 
+VALUES
+(1, 'Ivan', 'Ivanov', '1990-05-12', 'ivan.ivanov@example.com', '+79261234567', 'Moskva'),
+(2, 'Petr', 'Petrov', '1985-03-08', 'petr.petrov@example.ru', '+79267654321', 'Kazan');
+
+
+-- Вставляем дубль
+INSERT INTO store.clients (id, first_name, last_name, birth_date, email, phone, city) 
+values (1, 'Ivan', 'Ivanov', '1990-05-12', 'ivan.ivanov@example.com', '+79261234567', 'Moskva');
+
+
+-- Вставляем строку без id
+INSERT INTO store.clients (id, first_name, last_name, birth_date, email, phone, city) 
+values (null, 'Sergey', 'Smirnov', '1992-07-15', 'sergey.smirnov@example.com', '+79263456789', 'Voronezh');
+
+
+-- Вставляем ду,ль, но с уникальным id
+INSERT INTO store.clients (id, first_name, last_name, birth_date, email, phone, city) 
+values (21, 'Ivan', 'Ivanov', '1990-05-12', 'ivan.ivanov@example.com', '+79261234567', 'Moskva');
+
+
+
+-- Выводим данные из таблицы
+select * from store.clients;
+-----------------------------
+
+
+-- Удаляем отдельную строку
+delete from store.clients where id = 2;
+
+-- Удаляем отдельную строкутуже самую ещё раз
+delete from store.clients where id = 2;
+
+
+-- Выводим данные из таблицы
+select * from store.clients;
+-----------------------------
+
+
+-- Обновляем номер телефона
+update store.clients set phone = '+7111111111111111111' where id = 1
+
+
+-- Выводим данные из таблицы
+select * from store.clients;
+-----------------------------
+
+-- Обновляем id в строке
+update store.clients set id = 100 where  phone = '+7111111111111111111'
+
+-- Выводим данные из таблицы
+select * from store.clients;
+-----------------------------
+
+-- Очищаем таблицу 
+truncate table store.clients;
+
+
+-- Выводим данные из таблицы
+select * from store.clients;
+-----------------------------

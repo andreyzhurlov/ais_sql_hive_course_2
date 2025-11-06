@@ -1,0 +1,52 @@
+-- Создание базы данных
+CREATE DATABASE IF NOT EXISTS store;
+
+USE store;
+
+------------------------------------------------
+------------------------------------------------
+
+DROP TABLE IF EXISTS clients;
+
+------------------------------------------------
+------------------------------------------------
+
+-- Создание таблицы clients
+CREATE TABLE IF NOT EXISTS clients (
+    row_timestamp TIMESTAMP,
+    id INT,
+    first_name STRING,
+    last_name STRING,
+    birth_date DATE,
+    email STRING,
+    phone STRING,
+    city STRING
+)
+STORED AS PARQUET;
+
+------------------------------------------------
+------------------------------------------------
+
+-- Вставка данных
+INSERT INTO TABLE clients 
+VALUES
+(CURRENT_TIMESTAMP(), 1, 'Ivan', 'Ivanov', '1990-05-12', 'ivan.ivanov@example.com', '+79261234567', 'Moskva'),
+(CURRENT_TIMESTAMP(), 2, 'Petr', 'Petrov', '1985-03-08', 'petr.petrov@example.ru', '+79267654321', 'Kazan'),
+(CURRENT_TIMESTAMP(), 3, 'Sergey', 'Smirnov', '1992-07-15', 'sergey.smirnov@example.com', '+79263456789', 'Voronezh'),
+(CURRENT_TIMESTAMP(), 4, 'Aleksey', 'Sidorov', '1988-12-01', 'aleksey.sidorov@example.com', '+79267894561', 'Samara'),
+(CURRENT_TIMESTAMP(), 5, 'Dmitriy', 'Kuznetsov', '1995-06-23', 'dmitriy.kuznetsov@example.com', '+79264561239', 'Moskva'),
+(CURRENT_TIMESTAMP(), 6, 'Yuriy', 'Zhukov', NULL, 'yuriy.zhukov@example.com', '+79265678901', 'Kazan'),
+(CURRENT_TIMESTAMP(), 7, 'Oleg', 'Vasilev', '1979-02-17', 'oleg.vasilev@example.com', NULL, 'Voronezh'),
+(CURRENT_TIMESTAMP(), 8, 'Igor', 'Tikhonov', '1987-10-05', 'igor.tikhonov@example.com', '+79261112233', 'Moskva'),
+(CURRENT_TIMESTAMP(), 9, 'Roman', 'Nikolaev', '1993-04-19', 'roman.nikolaev@example.ru', '+79267778899', 'Saratov'),
+(CURRENT_TIMESTAMP(), 10, 'Viktor', 'Belyaev', '1983-11-22', 'viktor.belyaev@example.com', '+79262223344', 'Kazan'),
+(CURRENT_TIMESTAMP(), 11, 'Elena', 'Orlova', '1991-06-14', 'elena.orlova@example.com', NULL, 'Moskva'),
+(CURRENT_TIMESTAMP(), 12, 'Anna', 'Sokolova', NULL, 'anna.sokolova@example.com', '+79264445566', 'Samara'),
+(CURRENT_TIMESTAMP(), 13, 'Maria', 'Alekseeva', '1996-01-03', 'maria.alekseeva@example.com', '+79265556677', 'Voronezh'),
+(CURRENT_TIMESTAMP(), 14, 'Olga', 'Sergeeva', '1989-12-28', 'olga.sergeeva@example.com', '+79266667788', 'Kazan'),
+(CURRENT_TIMESTAMP(), 15, 'Natalya', 'Romanova', '1994-07-06', 'natalya.romanova@example.ru', '', 'Moskva'),
+(CURRENT_TIMESTAMP(), 16, 'Tatyana', 'Morozova', '1982-10-11', 'tatyana.morozova@example.com', '+79268889900', 'Saratov'),
+(CURRENT_TIMESTAMP(), 17, 'Svetlana', 'Pavlova', '1986-03-25', 'svetlana.pavlova@example.com', '+79269990011', 'Samara'),
+(CURRENT_TIMESTAMP(), 18, 'Vera', 'Kovaleva', '1990-09-17', NULL, NULL, 'Kazan'),
+(CURRENT_TIMESTAMP(), 19, 'Lyudmila', 'Egorova', '1981-05-29', 'lyudmila.egorova@example.com', '+79262223344', 'Moskva'),
+(CURRENT_TIMESTAMP(), 20, 'Alla', 'Grigorieva', '1997-02-13', 'alla.grigorieva@example.com', '+79263334455', 'Samara');

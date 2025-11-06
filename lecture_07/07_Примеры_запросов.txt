@@ -1,0 +1,120 @@
+---------------------------------------------------------------------------------
+-- Агрегации и группировки
+---------------------------------------------------------------------------------
+-- 6
+select avg(salary),
+      max(salary),
+      min(salary),
+      sum(salary)
+from   hr.employees
+where  job_id in (1, 2);
+
+-- 7
+select min(hire_date),
+      max(hire_date)
+from   hr.employees;
+
+-- 8
+select count(*)
+from   hr.employees
+--where  department_id = 5;
+
+select count(phone_number)
+from   hr.employees
+--where  department_id = 5;
+
+-- 9
+select count(distinct department_id)
+from   hr.employees;
+
+-- 10
+select avg(salary)
+from   hr.employees;
+--select avg(coalesce(commission_pct, 0))
+--from   hr.employees;
+
+-- 13
+select department_id as dept,
+      round(avg(salary), 0) as avg_salary
+from   hr.employees
+group  by dept
+order by avg_salary;
+
+-- 14
+select avg(salary)
+from   hr.employees
+group  by department_id;
+
+-- 16
+select department_id,
+      job_id,
+      sum(salary)
+from   hr.employees
+where  department_id > 4
+group  by department_id,
+         job_id
+order  by department_id;
+
+-- 17
+select department_id,
+      count(last_name)
+from   hr.employees;
+select department_id as dpt,
+      count(last_name) as emp_cnt
+from   hr.employees
+group  by dpt;
+
+select department_id,
+      job_id,
+      count(last_name)
+from   hr.employees
+group  by department_id;
+
+-- 18
+select department_id,
+      avg(salary)
+from   hr.employees
+where  avg(salary) > 80000
+group  by department_id;
+
+-- 21
+select department_id,
+      max(salary) as max_salary
+from   hr.employees
+group  by department_id
+having max(salary) > 80000;
+
+-- 22
+select job_id,
+      sum(salary) PAYROLL
+from   hr.employees
+where  job_id <> 2
+group  by job_id
+having sum(salary) > 130000
+order  by payroll;
+
+select job_id,
+      sum(salary) PAYROLL
+from   hr.employees
+where  job_id <> 2
+group  by job_id
+having sum(salary) > 130000
+order  by sum(salary);
+
+-- 23
+select max(avg(salary))
+from   hr.employees
+group  by department_id;
+
+--
+
+with cte_avg_dept_salary as (
+	select  e.department_id,
+			avg(e.salary) avg_dept_salary
+	  from hr.employees e
+	group by e.department_id
+)
+select round(max(avg_dept_salary), 0) as "Max avg dept salary"
+ from cte_avg_dept_salary
+                          
+

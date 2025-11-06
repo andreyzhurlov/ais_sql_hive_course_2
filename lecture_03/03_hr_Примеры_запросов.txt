@@ -1,0 +1,284 @@
+select
+    to_char(current_timestamp, 'HH:MI:SS')
+  , to_char(125, '9999')
+  , to_char(-125.8, '999D99S')
+  , to_date('05 Dec 2000', 'DD Mon YYYY')
+  , to_number('12,454.8-', '99G999D9S')
+  , to_timestamp('05 Dec 2000', 'DD Mon YYYY');
+ 
+--Преобразование к Дате
+SELECT '2025-06-17'::DATE;
+-- или
+SELECT CAST('2025-06-17' AS DATE);
+-- или
+SELECT TO_DATE('17-06-2025', 'DD-MM-YYYY');
+
+select 
+    employee_id
+  , first_name
+  , last_name
+  , manager_id
+from hr.employees;
+
+
+select
+    employee_id
+  , first_name
+  , last_name
+  , manager_id
+  , coalesce(manager_id, 0)
+from hr.employees;
+
+
+
+--Найти сотрудников, у которых длина фамилии больше 8 символов.
+SELECT 
+    employee_id,
+    last_name,
+    LENGTH(last_name) AS last_name_length
+FROM 
+    hr.employees
+WHERE 
+    LENGTH(last_name) > 8;
+
+
+--Извлечение логина из email
+SELECT 
+    employee_id,
+    email,
+    SUBSTRING(email FROM '^[^@]+') AS login
+FROM 
+    hr.employees;
+
+
+select
+    *
+  , nullif(job_title, 'President')
+from hr.jobs;
+
+select
+	region_id
+  , region_name
+  , case 
+        when region_name = 'Asia' THEN 'Азия'
+	    else 'Не Азия'
+	end
+  , case region_name
+        when 'Asia' then 'Азия'
+		else 'Не Азия'
+	end
+from hr.regions;
+
+select
+    first_name
+  , last_name
+  , salary
+  , case
+        when salary between 0.00 and 4999.99
+            then 'Low salary'
+	    when salary between 5000.00 and 9999.99
+	        then 'Normal salary'
+		when salary between 10000.00 and 14999.99
+	        then 'High salary'
+		else 'TOP'
+	end
+from hr.employees
+order by employee_id
+limit 10;
+
+
+select *
+from hr.employees
+natural join departments;
+
+
+select
+	emp.first_name
+  , emp.last_name
+  , dept.department_name
+from hr.employees as emp
+natural join departments as dept;
+
+
+select
+    emp.first_name
+  , emp.last_name
+  , dept.department_name
+from hr.employees as emp
+left join departments as dept
+on emp.department_id = dept.department_id;
+
+
+select
+    emp.first_name
+  , emp.last_name
+  , dept.department_name
+  , loc.city
+from hr.employees as emp
+left join departments as dept
+on emp.department_id = dept.department_id
+left join locations as loc
+on dept.location_id = loc.location_id;
+
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , dept.department_name
+  , loc.city
+from hr.employees as emp
+left join departments as dept
+on emp.department_id = dept.department_id
+left join locations as loc
+on dept.location_id = loc.location_id and
+    emp.employee_id = 200;
+   
+
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , dept.department_name
+  , loc.city
+from hr.employees as emp
+left join departments as dept
+on emp.department_id = dept.department_id
+left join locations as loc
+on dept.location_id = loc.location_id
+where
+   emp.employee_id = 200;
+   
+ 
+select
+	emp.first_name
+  , emp.last_name
+  , mgr.first_name
+  , mgr.last_name
+from hr.employees as emp
+left join employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , emp.salary
+  , emp.job_id
+  , jobs.job_title
+from hr.employees as emp
+left join jobs
+on emp.job_id = jobs.job_id and
+   emp.salary between jobs.min_salary and jobs.max_salary;
+
+
+select
+    emp.first_name as emp_first_name
+  , emp.last_name as emp_last_name
+  , mgr.first_name as mgr_first_name
+  , mgr.last_name as mgr_last_name
+from hr.employees as emp
+left join employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+
+select
+    emp.first_name as emp_first_name
+  , emp.last_name as emp_last_name
+  , mgr.first_name as mgr_first_name
+  , mgr.last_name as mgr_last_name
+from hr.employees as emp
+right join employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+	
+select
+    emp.first_name as emp_first_name
+  , emp.last_name as emp_last_name
+  , mgr.first_name as mgr_first_name
+  , mgr.last_name as mgr_last_name
+from hr.employees as emp
+full join employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+	
+select * from hr.employees;
+
+select * from hr.departments;
+
+
+select
+	emp.first_name
+  , emp.last_name
+  , dept.department_name
+from hr.employees as emp
+cross join departments as dept;
+
+
+select last_name, salary
+from hr.  employees
+where  salary >
+               (select salary
+                from hr.  employees
+                where  last_name = 'Petrov');
+
+
+select last_name, job_id, salary
+from hr.  employees
+where  job_id =  
+                (select job_id
+                 from hr.  employees
+                 where  last_name = 'Soloviev')
+AND    salary >
+                (select salary
+                 from hr.  employees
+                 where  last_name = 'Soloviev');
+				 
+				 
+select last_name, job_id
+from hr.  employees
+where  job_id =
+                (select job_id
+                 from hr.  employees
+                 where  last_name = 'Soloviev');
+				 
+				 
+
+select * from hr.jobs;
+
+select employee_id, last_name, job_id, salary
+from hr.  employees
+where  salary < any
+                    (select salary
+                     from hr.  employees
+                     where  job_id = 6)
+AND    job_id <> 6;
+
+
+select employee_id, last_name, job_id, salary
+from hr.  employees
+where  salary < all
+                    (select salary
+                     from hr.  employees
+                     where  job_id = 6)
+and job_id <> 6;
+
+
+select employee_id,salary,last_name from hr.employees M
+where exists
+(select employee_id from hr.employees W
+ where (W.manager_id = M.employee_id) AND W.salary > 100000);
+
+
+select * from hr.jobs
+where not exists
+(select * from hr.employees
+ where employees.job_id = jobs.job_id and 
+       employees.manager_id is not null);
+
+
+select emp.last_name
+from hr.  employees emp
+where  emp.employee_id not in
+                           (select mgr.manager_id
+                            from hr.  employees mgr);

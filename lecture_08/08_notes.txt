@@ -1,0 +1,327 @@
+---------------------------------------------------------------------------------
+-- VIEW
+---------------------------------------------------------------------------------
+-- 49
+create view	hr.emp_dep_8
+as select  employee_id, last_name, salary
+   from    hr.employees
+   where   department_id = 8;
+	
+SELECT * FROM hr.emp_dep_8
+
+-- 50
+create view	hr.year_salary_dep_5
+as select  employee_id ID_NUMBER, last_name as name,
+           salary*12 ANN_SALARY
+   from    hr.employees
+   where   department_id = 5;
+SELECT * FROM hr.year_salary_dep_5;
+
+-- 52
+drop view  hr.emp_dep_8;
+--
+
+create or replace view hr.emp_dep_8(
+	id_number,
+   full_name,
+	salary,
+	department_id
+)
+as select   employee_id,
+			first_name || ' ' || last_name,
+			salary,
+			department_id
+    from  hr.employees
+   where  department_id = 8;
+  --
+SELECT * FROM hr.emp_dep_8;
+
+select * from  hr.employees where employee_id = 179;
+update hr.employees
+ set salary = 100000
+where employee_id = 179;
+
+-- 53
+CREATE OR REPLACE VIEW hr.dept_sum_vu(
+	name,
+	minsal,
+	maxsal,
+	avgsal
+)
+as select   d.department_name,
+			MIN(e.salary),
+           MAX(e.salary),
+			round(AVG(e.salary), 0)
+	from hr.employees e
+	join hr.departments d
+     on (e.department_id = d.department_id)
+  group by d.department_name;
+ 
+SELECT * FROM hr.dept_sum_vu;
+
+----------------------------------------------------------
+----------------------------------------------------------
+CREATE MATERIALIZED VIEW IF NOT EXISTS hr.mv_emp_dep_8(
+	id_number,
+   full_name,
+	salary,
+	department_id
+)
+as select   employee_id,
+			first_name || ' ' || last_name,
+			salary,
+			department_id
+    from  hr.employees
+   where  department_id = 8;
+  --
+
+SELECT * FROM hr.mv_emp_dep_8;
+
+select * from  hr.employees where employee_id = 178;
+update hr.employees
+ set salary = 80000
+where employee_id = 178;
+
+--
+REFRESH MATERIALIZED view hr.mv_emp_dep_8;
+
+
+---------------------------------------------------------------------------------
+-- Оконные функции
+---------------------------------------------------------------------------------
+-- Задача: накопительная сумма заказов клиента по дате:
+-- Вычисляет сумму всех заказов клиента от самого первого до текущего.
+
+--original_solution
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   SUM(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS running_total
+FROM store.orders;
+
+--V1
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   SUM(order_ammount) OVER (
+       PARTITION BY client_id
+       --ORDER BY order_date
+       --ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS running_total
+FROM store.orders
+order by client_id, order_date;
+
+--V2
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   SUM(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+       --ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS running_total
+FROM store.orders;
+
+--V3
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   SUM(order_ammount) OVER (
+       PARTITION BY client_id, order_date
+       ORDER BY order_date
+       --ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS running_total
+FROM store.orders;
+
+--V4
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   SUM(order_ammount) OVER (
+       PARTITION BY client_id, order_date
+       ORDER BY order_date
+       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS running_total
+FROM store.orders;
+
+-- Задача: средняя сумма заказа за последние 3 строки по каждому клиенту:
+-- Подсчитывает среднюю сумму для окна из текущей и двух предыдущих строк.
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   round(AVG(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+       ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+   ),0) AS rolling_avg
+FROM store.orders;
+
+-- Задача: для каждого заказа показать наименьший и наибольший заказ клиента:
+-- Это помогает анализировать динамику покупок: выросли или упали ли суммы заказов.
+SELECT
+   client_id,
+   order_date,
+   order_ammount,
+   MIN(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS min_order,
+   MAX(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+   ) AS max_order
+FROM store.orders;
+
+-- COUNT(): Для каждого клиента посчитать, сколько клиентов в его городе (включая его самого).
+SELECT
+   id AS client_id,
+   first_name,
+   last_name,
+   city,
+   COUNT(*) OVER (PARTITION BY city) AS clients_in_city
+FROM
+   store.clients;
+
+
+
+
+------------------------------------------------------
+/*
+Задача:
+Для каждого клиента и заказа вывести:
+текущую сумму заказа,
+сумму предыдущего заказа (с помощью LAG()),
+сумму следующего заказа (с помощью LEAD()),
+упорядочив по дате заказа.
+*/
+SELECT
+   client_id,
+   order_date,
+   item_name,
+   order_ammount,
+   LAG(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS prev_order_amount,
+   LEAD(order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS next_order_amount
+FROM store.orders
+ORDER BY client_id, order_date;
+----------------------------------------------------
+SELECT
+   client_id,
+   order_date,
+   item_name,
+   order_ammount,
+   LAG(order_ammount, 2) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS prev_order_amount,
+   LEAD(order_ammount, 2) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS next_order_amount
+FROM store.orders
+ORDER BY client_id, order_date;
+----------------------------------------------------
+SELECT
+   client_id,
+   order_date,
+   item_name,
+   order_ammount,
+   coalesce(LAG(order_ammount, 2) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ),0) AS prev_order_amount,
+   LEAD(order_ammount, 2) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS next_order_amount
+FROM store.orders
+ORDER BY client_id, order_date;
+--------------------------------------------
+SELECT
+   client_id,
+   order_date,
+   item_name,
+   order_ammount,
+   LAG(order_ammount, 2, 0) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS prev_order_amount,
+   LEAD(order_ammount, 2, 0) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS next_order_amount
+FROM store.orders
+ORDER BY client_id, order_date;
+--------------------------------------------
+SELECT
+   client_id,
+   order_date,
+   item_name,
+   order_ammount,
+   LAG(order_ammount, 2, order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS prev_order_amount,
+   LEAD(order_ammount, 2, order_ammount) OVER (
+       PARTITION BY client_id
+       ORDER BY order_date
+   ) AS next_order_amount
+FROM store.orders
+ORDER BY client_id, order_date;
+--------------------------------------------------------------------------------
+-- ROW_NUMBER() — Найти самого раннего нанятого сотрудника в каждом департаменте
+SELECT *
+FROM (
+   SELECT
+       employee_id,
+       first_name,
+       last_name,
+       department_id,
+       hire_date,
+       ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY hire_date) AS rn
+   FROM hr.employees
+) t
+WHERE rn = 1;
+----------------------
+SELECT *
+FROM (
+   SELECT
+       employee_id,
+       first_name,
+       last_name,
+       department_id,
+       hire_date,
+       DENSE_RANK() OVER (PARTITION BY department_id ORDER BY hire_date) AS rn
+   FROM hr.employees
+) t
+WHERE rn = 1;
+--------------------------------------------------------------------------------
+-- RANK() — Ранжировать сотрудников по зарплате внутри департамента
+-- Задача: понять, кто является самым высокооплачиваемым сотрудником в своём отделе,
+-- с учётом возможных одинаковых зарплат.
+SELECT
+   employee_id,
+   first_name,
+   last_name,
+   department_id,
+   salary,
+   DENSE_RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS salary_rank
+FROM hr.employees;
+

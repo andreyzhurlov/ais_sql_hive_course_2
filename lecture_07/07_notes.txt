@@ -1,0 +1,262 @@
+-- Задание 1: Общее количество и сумма заказов, среднее значение заказа,
+-- минимальная и максимальная дата заказа
+-- без группировок
+
+select  count(o.order_id),
+		sum(o.order_ammount),
+		avg(o.order_ammount),
+		min(o.order_date),
+		max(o.order_date)
+ from store.orders o;
+
+ --v2
+with cte_orders as (
+	select  o.order_id,
+			o.order_date,
+			sum(o.order_ammount) as order_ammount
+	  from store.orders o
+	  group by  o.order_id,
+				o.order_date
+)
+select  count(o.order_id),
+		sum(o.order_ammount),
+		avg(o.order_ammount),
+		min(o.order_date),
+		max(o.order_date)
+ from cte_orders o;
+-------------------------------------------------
+-- Задание 2: Общее количество и сумма заказов, среднее значение заказа,
+-- минимальная и максимальная дата заказа
+-- в Группировке по названию товара
+-- Сортировка по количеству (По Возрастанию) + по сумме заказов (по Убыванию)
+select o.item_name,
+		count(*) as item_qty,
+		sum(o.order_ammount) as item_sum,
+		avg(o.order_ammount) as item_avg,
+		min(o.order_date) as item_min,
+		max(o.order_date) as item_max
+ from store.orders o
+ group by o.item_name
+ order by  item_qty,
+ 			item_sum desc;
+ 		
+-- Задание 3: По каждому клиенту: Общее количество и сумма заказов,
+-- минимальная и максимальная дата заказа
+-- + Доп.информация с Фамилией и Именем клиента, а так же название города
+-- + Сортировка по Убыванию относительно суммы заказа
+  select o.client_id,
+ 		concat(c.first_name, ' ', c.last_name) as full_name,
+ 		c.city,
+		sum(o.order_qty) as order_qty,
+		sum(o.order_ammount) as order_sum,
+		min(o.order_date) as order_min,
+		max(o.order_date) as order_max
+ from store.orders o
+ join store.clients c
+   on o.client_id = c.id
+ group by o.client_id,
+ 		   full_name,
+ 		   c.city
+ order by order_sum desc;
+	
+--v2
+ with cte_orders as (
+	select  o.client_id,
+			o.order_id,
+			o.order_date,
+			sum(o.order_ammount) as order_ammount
+	  from store.orders o
+	  group by  o.client_id,
+	  			o.order_id,
+				o.order_date
+), cte_client_orders as (
+	select  o.client_id,
+			count(o.order_id) as order_qty,
+			sum(o.order_ammount) as order_sum,
+			min(o.order_date) as order_min,
+			max(o.order_date) as order_max
+	  from cte_orders o
+	  group by o.client_id
+)
+select  o.client_id,
+ 		concat(c.first_name, ' ', c.last_name) as full_name,
+ 		c.city,
+ 		o.order_qty,
+		o.order_sum,
+		o.order_min,
+		o.order_max
+ from cte_client_orders o
+ join store.clients c
+   on o.client_id = c.id
+order by o.order_sum desc;
+ 			
+-- Задание 4: Общее количество и сумма заказов по каждому городу
+-- в Порядке убывания по сумме заказов
+with cte_orders as (
+	select  o.client_id,
+			o.order_id,
+			sum(o.order_ammount) as order_ammount
+	  from store.orders o
+	  group by  o.client_id,
+	  			o.order_id
+)
+select  c.city,
+ 		count(o.order_id) as order_qty,
+		sum(o.order_ammount) as order_sum
+ from cte_orders o
+ join store.clients c
+   on o.client_id = c.id
+group by c.city
+order by order_sum desc;
+
+-- Задание 5: Общее количество, сумма заказов и среднее значение заказа, по возрастным группам
+-- в Порядке убывания по сумме заказов
+with cte_orders as (
+	select  o.client_id,
+			o.order_id,
+			sum(o.order_ammount) as order_ammount
+	  from store.orders o
+	  group by  o.client_id,
+	  			o.order_id
+), cte_client_orders as (
+	select  extract(year from age(c.birth_date)) as client_age,
+	  		o.order_id,
+			o.order_ammount
+	  from cte_orders o
+	  join store.clients c
+	    on o.client_id = c.id
+), cte_client_orders_age_group as (
+	select  CASE
+		        WHEN client_age < 18 THEN 'menee 18'
+		        WHEN client_age BETWEEN 18 AND 24 THEN '18 - 24'
+		        WHEN client_age BETWEEN 25 AND 39 THEN '25 - 39'
+				WHEN client_age BETWEEN 40 AND 55 THEN '40 - 55'
+		        WHEN client_age BETWEEN 56 AND 70 THEN '56+'
+		        ELSE 'Ne izvestno'
+		    END AS age_group,
+	  		o.order_id,
+			o.order_ammount
+     from cte_client_orders o
+)
+select  age_group,
+		count(order_id) as order_qty,
+		sum(order_ammount) as order_sum
+ from cte_client_orders_age_group
+group by age_group
+order by order_sum desc;
+
+-----------------------------------------------------------------------------
+-- GROUP BY + HAVING + CTE
+-----------------------------------------------------------------------------
+-- Задание 2: Найти города, в которых более 3 клиентов, рождённых после 1990 года, совершали заказы.
+-- Вывести название города и количество таких клиентов.
+
+select c.city,
+	   count(c.id) as client_qty
+ from store.orders o
+ join store.clients c
+   on o.client_id  = c.id
+  and c.birth_date > '1990-12-31'
+group by c.city
+having count(c.id) > 3
+
+-----------------------------------------------------------------------------
+-- GROUP BY + HAVING
+-----------------------------------------------------------------------------
+-- Задание 1: Найти клиентов, которые сделали более 2 заказов, и вывести
+-- их фамилию, имя, город и количество заказов.
+-- + Сортировка по убыванию количества заказов
+select  c.last_name,
+		c.first_name,
+		c.city,
+		count(distinct o.order_id) as order_qty
+ from store.clients c
+ join store.orders o
+   on o.client_id = c.id
+group by c.last_name,
+		  c.first_name,
+		  c.city
+having count(distinct o.order_id) > 2
+order by order_qty desc;
+
+
+--v2
+with cte_client_orders as (
+	select  c.last_name,
+	 		c.first_name,
+	 		c.city,
+	 		o.order_id
+	  from store.clients c
+	  join store.orders o
+	    on o.client_id = c.id
+	 group by c.last_name,
+	 		  c.first_name,
+	 		  c.city,
+	 		  o.order_id
+)
+select  c.last_name,
+		c.first_name,
+		c.city,
+		count(c.order_id) as order_qty
+ from cte_client_orders c
+group by c.last_name,
+		  c.first_name,
+		  c.city
+having count(c.order_id) > 2
+order by order_qty desc;
+
+
+-- Задание 2: Найти клиентов, у которых общая сумма заказов превышает 10000,
+-- и вывести их имя, фамилию, email и сумму заказов.
+-- + Сортировка по убыванию суммы заказа
+select concat(c.first_name, ' ', c.last_name) as full_name,
+	   c.email,
+	   sum(o.order_ammount) as order_qty
+ from store.clients c
+ join store.orders o
+   on c.id  = o.client_id
+group by c.id,
+		  full_name,
+		  c.email
+having sum(o.order_ammount) > 10000
+order by order_qty desc;
+
+
+-----------------------------------------------------------------------------
+-- GROUP BY + HAVING + CTE
+-----------------------------------------------------------------------------
+-- Задание 1: Найти клиентов, которые за 2024 год сделали заказы на сумму более 10,000.
+-- Вывести имя, фамилию, город и сумму заказов.  
+ 
+select extract(year from o.order_date),
+	   date_part('year', o.order_date)	
+ from store.orders o;
+
+--v1
+select concat(c.first_name, ' ', c.last_name) as full_name,
+	   c.email,
+	   sum(o.order_ammount) as order_qty
+ from store.clients c
+ join store.orders o
+   on c.id  = o.client_id
+  and date_part('year', o.order_date) = 2024
+group by c.id,
+		  full_name,
+		  c.email
+having sum(o.order_ammount) > 10000
+order by order_qty desc;
+
+--v2
+select concat(c.first_name, ' ', c.last_name) as full_name,
+	   c.email,
+	   sum(o.order_ammount) as order_qty
+ from store.clients c
+ join store.orders o
+   on c.id  = o.client_id
+  and o.order_date between '2024-01-01' and '2024-12-31'
+group by c.id,
+		  full_name,
+		  c.email
+having sum(o.order_ammount) > 10000
+order by order_qty desc;
+

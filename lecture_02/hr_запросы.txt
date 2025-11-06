@@ -1,0 +1,171 @@
+-- SQL-запросы к учебной базе hr
+
+
+-- 1. Найти сотрудников с зарплатой более 10 000 и должностью, начинающейся на 'Manager'
+SELECT e.first_name, e.last_name, e.salary
+FROM hr.employees e
+WHERE e.salary > 100000;
+
+
+-- 2. Сотрудники по алфавиту (фамилия)
+SELECT first_name, last_name
+FROM hr.employees
+ORDER BY last_name ASC;
+
+
+-- 3. Сотрудники по убыванию зарплаты
+SELECT first_name, last_name, salary
+FROM hr.employees
+ORDER BY salary DESC;
+
+
+-- 4. Топ-5 сотрудников по зарплате
+SELECT first_name, last_name, salary
+FROM hr.employees
+ORDER BY salary DESC
+LIMIT 5;
+
+
+-- 5. Сотрудники по департаменту, внутри — по зарплате
+SELECT first_name, last_name, department_id, salary
+FROM hr.employees
+ORDER BY department_id ASC, salary DESC;
+
+
+-- 6. Сотрудники по дате приёма на работу
+SELECT first_name, last_name, hire_date
+FROM hr.employees
+ORDER BY hire_date DESC;
+
+
+-- 7. Получить всех сотрудников, чьё имя начинается с 'S' и не работает в департаменте с ID 9
+SELECT * FROM hr.employees
+WHERE first_name LIKE 'S%' AND department_id != 9;
+
+-- 8. Вывести список сотрудников, у которых email не содержит подстроку 'sqltutorial'
+SELECT * FROM hr.employees
+WHERE email NOT LIKE '%sqltutorial%';
+
+-- 9. Найти всех сотрудников, у которых указаны номера телефонов, начинающиеся на '515'
+SELECT * FROM hr.employees
+WHERE phone_number LIKE '515%';
+
+-- 10. Получить сотрудников, у которых зарплата входит в диапазон от 7000 до 9000 и которые работают в департаменте 10
+SELECT * FROM hr.employees
+WHERE salary BETWEEN 70000 AND 90000 
+  AND department_id = 10;
+
+-- 11. Найти сотрудников, чьи фамилии заканчиваются на 'ez' или 'man'
+SELECT * FROM hr.employees
+WHERE last_name LIKE '%ova' OR last_name LIKE '%man%';
+
+-- 12. Вывести сотрудников с фамилией, длина которой больше 7 символов
+SELECT * FROM hr.employees
+WHERE LENGTH(last_name) > 7;
+
+-- 13. Получить сотрудников, чья зарплата не входит в список значений (4800, 6000, 12000)
+SELECT * FROM hr.employees
+WHERE salary NOT IN (48000, 60000, 120000);
+
+-- 14. Собрать ФИО сотрудника в одну колонку и показать email и зарплату
+SELECT 
+  CONCAT(first_name, ' ', last_name) AS full_name,
+  email,
+  salary
+FROM hr.employees;
+
+-- 15. Найти всех сотрудников, у которых есть дети (в таблице dependents)
+SELECT e.employee_id, e.first_name, e.last_name
+FROM hr.employees e
+WHERE e.employee_id IN (
+  SELECT employee_id
+  FROM hr.dependents
+);
+---------------------------------------------------------
+-- Функции
+---------------------------------------------------------
+
+-- 1. Строковые функции
+-- Применяются к столбцам типа text, varchar, char
+
+-- Преобразует имя сотрудника в верхний регистр
+SELECT UPPER(first_name) AS upper_name FROM hr.employees LIMIT 5;
+
+-- Возвращает длину строки email
+SELECT LENGTH(email) AS email_length FROM hr.employees LIMIT 5;
+
+-- Обрезает лишние пробелы
+SELECT TRIM('  ' || first_name || '  ') AS trimmed_name FROM hr.employees LIMIT 5;
+
+-- Извлекает первые 3 символа фамилии
+SELECT SUBSTRING(last_name FROM 1 FOR 3) AS short_last FROM hr.employees LIMIT 5;
+
+
+---------------------------------------------------------
+-- 2. Функции даты и времени
+-- Работают с типами DATE, TIMESTAMP, INTERVAL
+
+-- Получает год приёма на работу
+SELECT EXTRACT(YEAR FROM hire_date) AS hire_year FROM hr.employees LIMIT 5;
+
+-- Форматирует дату в строку
+SELECT TO_CHAR(hire_date, 'DD Mon YYYY') AS formatted_date FROM hr.employees LIMIT 5;
+
+-- Считает возраст с момента приёма
+SELECT AGE(CURRENT_DATE, hire_date) AS work_experience FROM hr.employees LIMIT 5;
+
+-- Обрезает дату до начала года
+SELECT DATE_TRUNC('year', hire_date) AS year_start FROM hr.employees LIMIT 5;
+
+
+---------------------------------------------------------
+-- 3. Числовые функции
+-- Работают с integer, numeric, float
+
+-- Абсолютное значение разницы зарплаты и 100000
+SELECT ABS(salary - 100000) AS deviation FROM hr.employees LIMIT 5;
+
+-- Округление зарплаты до тысяч
+SELECT ROUND(159890.99, -3) AS rounded_salary;
+
+-- Остаток от деления зарплаты на 5000
+SELECT MOD(salary, 5000) AS salary_mod FROM hr.employees;
+
+-- Возведение min_salary в квадрат
+SELECT POWER(min_salary, 2) AS min_salary_squared FROM hr.jobs LIMIT 5;
+
+
+
+---------------------------------------------------------
+-- Задачи --
+---------------------------------------------------------
+
+-- 1. Найдите сотрудников, чьё имя начинается на 'A' и отсортируйте их по фамилии по возрастанию.
+
+
+-- 2. Покажите сотрудников, у которых зарплата больше 9000, отсортируйте по зарплате по убыванию.
+
+
+-- 3. Найдите всех сотрудников, у которых фамилия содержит 'ov', отсортируйте по имени.
+
+
+-- 4. Выведите сотрудников с id от 100 до 120 включительно, отсортируйте по ID.
+
+
+-- 5. Покажите сотрудников, у которых номер телефона начинается на '515'.
+
+
+-- 6. Соберите полное имя сотрудника (first_name и last_name через пробел) и выведите его вместе с email.
+
+
+-- 7. Покажите сотрудников, не работающих в департаментах 3, 7 и 10, и отсортируйте их по имени.
+
+
+-- 8. Найдите сотрудников, у которых фамилия длиной более 7 символов, отсортируйте по фамилии.
+
+
+-- 9. Покажите всех сотрудников, чьё имя не содержит букву 'e'.
+
+
+-- 10. Выведите строку вида 'Фамилия, Имя (email)' и отсортируйте по фамилии.
+

@@ -1,0 +1,325 @@
+
+
+------------------------------------------------------------------------------------
+-- Подазпросы
+------------------------------------------------------------------------------------
+
+select last_name, salary
+from hr.employees
+where  salary >
+               (select salary
+                from hr.employees
+                where  last_name = 'Fay');
+
+
+
+select last_name, job_id
+from hr.employees
+where  job_id =
+                (select job_id
+                 from hr.employees
+                 where  last_name = 'Lorentz');
+
+
+
+-- потом переписать на CTE
+select last_name, job_id, salary
+from hr.employees
+where  job_id =  
+                (select job_id
+                 from hr.employees
+                 where  last_name = 'Lorentz')
+AND    salary >
+                (select salary
+                 from hr.employees
+                 where  last_name = 'Lorentz');
+				 
+				 
+select * from hr.jobs;
+
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < any
+                    (select salary
+                     from hr.employees
+                     where  job_id = 6)
+AND    job_id <> 6;
+
+
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < all
+                    (select salary
+                     from hr.employees
+                     where  job_id = 6)
+and job_id <> 6;
+
+
+-- Вывести сотрудника, который является менеджером и с зарплатой более N
+select  employee_id,
+		salary,
+		last_name 
+from hr.employees t1
+where exists
+			(select employee_id 
+			  from hr.employees t2
+			 where t2.manager_id = t1.employee_id
+			 and t2.salary > 10000);
+
+
+
+-- Найти такие должности, которых нет среди подчинённых сотрудников
+select * 
+ from hr.jobs
+where not exists
+				(select * from hr.employees
+				 where employees.job_id = jobs.job_id 
+				   and employees.manager_id is not null);
+
+
+
+--Найти всех сотрудников, кто не менеджеры
+select emp.employee_id
+	   emp.last_name,
+from hr.employees emp
+where  emp.employee_id not in
+                           (select mgr.manager_id
+                            from hr.employees mgr);
+							
+							
+select emp.employee_id
+	   emp.last_name,
+from hr.employees emp
+where  emp.employee_id not in
+                           (select distinct coalesce(mgr.manager_id, 0)
+                            from hr.employees mgr);
+
+---------------------------------------------------------------------------------
+-- UNION и UNION ALL
+---------------------------------------------------------------------------------
+
+-- 30
+select employee_id,
+       job_id
+from   hr.employees
+union
+select employee_id,
+       job_id
+from   hr.job_history;
+
+-- 32
+select employee_id,
+       job_id,
+       department_id
+from   hr.employees
+union all
+select employee_id,
+       job_id,
+       department_id
+from   hr.job_history
+order  by employee_id;
+
+
+-- 37
+select location_id,
+       department_name "Department",
+       null            "Warehouse location"
+from   hr.departments
+union
+select location_id,
+       null "Department",
+       state_province
+from   hr.locations;
+
+-- 38
+select employee_id,
+       job_id,
+       salary
+from   hr.employees
+union
+select employee_id,
+       job_id,
+       0
+from   hr.job_history;
+
+---------------------------------------------------------------------------------
+-- CTE
+---------------------------------------------------------------------------------
+
+-- 1. Вывести список всех сотрудников, работающих в департаменте "IT", с указанием города
+-- Сотрудники из департамента IT и их города
+WITH it_department AS (
+    SELECT department_id
+    FROM hr.departments
+    WHERE department_name = 'IT'
+)
+SELECT e.first_name, e.last_name, l.city
+FROM hr.employees e
+JOIN hr.departments d ON e.department_id = d.department_id
+JOIN hr.locations l ON d.location_id = l.location_id
+WHERE e.department_id IN (SELECT department_id FROM it_department);
+
+
+
+
+-- 2. Вывести имена сотрудников и отметить статус по зарплате: "низкая", "средняя", "высокая"
+-- Сотрудники и категории по зарплате
+WITH salary_classification AS (
+    SELECT
+        employee_id,
+        first_name,
+        last_name,
+        salary,
+        CASE
+            WHEN salary < 5000 THEN 'низкая'
+            WHEN salary BETWEEN 5000 AND 10000 THEN 'средняя'
+            ELSE 'высокая'
+        END AS salary_status
+    FROM hr.employees
+)
+SELECT *
+FROM salary_classification;
+
+
+
+-- 3. Найти сотрудников, которые работают в одной стране с департаментом "Marketing"
+-- Сотрудники, работающие в той же стране, где департамент "Marketing"
+WITH marketing_country AS (
+    SELECT l.country_id
+    FROM hr.departments d
+    JOIN hr.locations l ON d.location_id = l.location_id
+    WHERE d.department_name = 'Marketing'
+)
+SELECT DISTINCT e.first_name, e.last_name, l.country_id
+FROM hr.employees e
+JOIN hr.departments d ON e.department_id = d.department_id
+JOIN hr.locations l ON d.location_id = l.location_id
+WHERE l.country_id IN (SELECT country_id FROM marketing_country);
+
+
+
+-- 4. Вывести имена сотрудников и имена их детей (из таблицы dependents)
+-- Сотрудники и их дети
+WITH employee_names AS (
+    SELECT employee_id, first_name || ' ' || last_name AS emp_full_name
+    FROM hr.employees
+)
+SELECT en.emp_full_name AS employee, d.first_name AS child_first_name, d.last_name AS child_last_name
+FROM employee_names en
+JOIN hr.dependents d ON en.employee_id = d.employee_id;
+
+
+---------------------------------------------------------------------------------
+-- Агрегации и группировки
+---------------------------------------------------------------------------------
+
+
+-- 6
+select avg(salary),
+       max(salary),
+       min(salary),
+       sum(salary)
+from   hr.employees
+where  job_id like '%REP%';
+
+-- 7
+select min(hire_date),
+       max(hire_date)
+from   hr.employees;
+
+-- 8
+select count(*)
+from   hr.employees
+where  department_id = 50;
+
+select count(commission_pct)
+from   hr.employees
+where  department_id = 50;
+
+-- 9
+select count(distinct department_id)
+from   hr.employees;
+
+-- 10
+select avg(commission_pct)
+from   hr.employees;
+
+select avg(coalesce(commission_pct, 0))
+from   hr.employees;
+
+-- 13
+select department_id,
+       avg(salary)
+from   hr.employees
+group  by department_id;
+
+-- 14
+select avg(salary)
+from   hr.employees
+group  by department_id;
+
+-- 16
+select department_id,
+       job_id,
+       sum(salary)
+from   hr.employees
+where  department_id > 40
+group  by department_id,
+          job_id
+order  by department_id;
+
+-- 17
+select department_id,
+       count(last_name)
+from   hr.employees;
+
+select department_id as dpt,
+       count(last_name)
+from   hr.employees
+group  by dpt;
+
+select department_id,
+       job_id,
+       count(last_name)
+from   hr.employees
+group  by department_id;
+
+-- 18
+select department_id,
+       avg(salary)
+from   hr.employees
+where  avg(salary) > 8000
+group  by department_id;
+
+-- 21
+select department_id,
+       max(salary)
+from   hr.employees
+group  by department_id
+having max(salary) > 10000;
+
+-- 22
+select job_id,
+       sum(salary) PAYROLL
+from   hr.employees
+where  job_id not like '%REP%'
+group  by job_id
+having sum(salary) > 13000
+order  by payroll;
+
+select job_id,
+       sum(salary) PAYROLL
+from   hr.employees
+where  job_id not like '%REP%'
+group  by job_id
+having sum(salary) > 13000
+order  by sum(salary);
+
+-- 23
+select max(avg(salary))
+from   hr.employees
+group  by department_id;
+
+
+
+                            

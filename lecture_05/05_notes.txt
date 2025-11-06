@@ -1,0 +1,150 @@
+select
+		(select t2.city from store.clients t2 where t2.id = t1.client_id) as city
+		,'dataset_1' as c1
+		,t1.*
+  from store.orders t1
+ 
+------------------------------------------
+select t1.employee_id,
+		t1.last_name,
+		t2.department_name
+from (
+		select emp.employee_id,
+			   emp.last_name,
+			   emp.department_id
+		from hr.employees emp
+		where  emp.employee_id not in
+		                           (select manager_id
+		                            from hr.employees mgr
+		                           where mgr.manager_id is not null)
+	  ) t1
+ left join hr.departments t2
+ on t1.department_id = t2.department_id;
+
+
+
+
+-- Задание 3: Показать все заказы, сделанные в те же дни, когда заказывал клиент с id = 5
+select o1.*
+ from store.orders o1
+where o1.order_date in (select distinct o2.order_date
+						 from store.orders o2 where o2.client_id = 5)
+and o1.client_id <> 5	
+
+
+				  
+-- Задание 4: Найти имена клиентов, у которых заказ был сделан позже всех заказов клиента с id = 10					  
+						  
+select distinct
+	   c1.id,
+	   c1.first_name || ' ' || c1.last_name as full_name,
+	   o1.order_date
+ from store.orders o1
+ join store.clients c1
+   on o1.client_id  = c1.id
+where o1.order_date > all (select distinct o2.order_date
+						 from store.orders o2 where o2.client_id = 10)
+  and o1.client_id <> 10
+order by o1.order_date;
+
+
+
+select employee_id,
+      e.job_id,
+      j.job_title as "Job Name",
+      hire_date,
+      e.salary
+from   hr.employees e
+join hr.jobs j
+ on e.job_id = j.job_id
+union
+select employee_id,
+      h.job_id,
+      j.job_title,
+      hire_date,
+      null as salary
+from   hr.job_history h
+join hr.jobs j
+ on h.job_id = j.job_id
+order by employee_id, hire_date desc;
+
+
+-- Задание 1. Вывести клиентов, у которых есть хотя бы один заказ с товаром laptop,
+-- и отметить их как VIP,
+-- остальных как "обычный" (ordinary)
+with cte_vip_clients as (
+	select distinct
+			'vip' as status,
+			c.id,
+			c.first_name,
+			c.last_name,
+			c.email
+	  from store.orders o
+	  join store.clients c
+	    on o.client_id = c.id
+	   and o.item_name in ('laptop')
+)
+,cte_all_clients as (
+select 	t1.status,
+	   	t1.id as client_id,
+  		concat(t1.first_name, ' ', t1.last_name) as full_name,
+		t1.email
+ from cte_vip_clients t1
+union all
+select 	'ordinary' as status,
+	   	t2.id as client_id,
+  		concat(t2.first_name, ' ', t2.last_name),
+		t2.email
+ from store.clients t2
+ left join cte_vip_clients t3
+   on t2.id = t3.id
+where t3.id is null
+)
+select 	status,
+	   	client_id,
+  		full_name,
+		email
+ from cte_all_clients
+where email is not null
+order by full_name desc
+
+
+---------------------------------------------------------------------------------
+-- CTE
+---------------------------------------------------------------------------------
+-- 1. Вывести список всех сотрудников, работающих в департаменте "IT", с указанием города
+-- Сотрудники из департамента IT и их города
+WITH it_department AS (
+   SELECT department_id
+   FROM hr.departments
+   WHERE department_name = 'IT'
+)
+SELECT e.first_name, e.last_name, l.city
+FROM hr.employees e
+JOIN hr.departments d
+ ON e.department_id = d.department_id
+and e.department_id IN (SELECT department_id FROM it_department)	
+JOIN hr.locations l
+ ON d.location_id = l.location_id;
+
+
+-- 3. Найти сотрудников, которые работают в одной стране с департаментом "Marketing"
+-- Сотрудники, работающие в той же стране, где департамент "Marketing"
+WITH marketing_locations AS (
+   SELECT l.location_id,
+   	   l.city
+   FROM hr.departments d
+   JOIN hr.locations l ON d.location_id = l.location_id
+   WHERE d.department_name = 'Marketing'
+)
+SELECT DISTINCT
+		e.first_name,
+		e.last_name,
+		d.department_name,
+		ml.city
+FROM hr.employees e
+JOIN hr.departments d
+ ON e.department_id = d.department_id
+JOIN marketing_locations ml
+ on ml.location_id = d.location_id;
+

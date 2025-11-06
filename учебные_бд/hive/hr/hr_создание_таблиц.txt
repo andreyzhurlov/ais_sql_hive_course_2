@@ -1,0 +1,80 @@
+-- Создание базы данных
+CREATE DATABASE IF NOT EXISTS hr;
+
+USE hr;
+
+-- Таблица регионов
+CREATE TABLE IF NOT EXISTS regions (
+    region_id INT,
+    region_name STRING
+)
+STORED AS PARQUET;
+
+-- Таблица стран
+CREATE TABLE IF NOT EXISTS countries (
+    country_id STRING,
+    country_name STRING,
+    region_id INT
+)
+STORED AS PARQUET;
+
+-- Таблица локаций
+CREATE TABLE IF NOT EXISTS locations (
+    location_id INT,
+    street_address STRING,
+    postal_code STRING,
+    city STRING,
+    state_province STRING,
+    country_id STRING
+)
+STORED AS PARQUET;
+
+-- Таблица департаментов
+CREATE TABLE IF NOT EXISTS departments (
+    department_id INT,
+    department_name STRING,
+    location_id INT
+)
+STORED AS PARQUET;
+
+-- Таблица должностей
+CREATE TABLE IF NOT EXISTS jobs (
+    job_id INT,
+    job_title STRING,
+    min_salary DECIMAL(8,2),
+    max_salary DECIMAL(8,2)
+)
+STORED AS PARQUET;
+
+-- Таблица сотрудников
+CREATE TABLE IF NOT EXISTS employees (
+    employee_id INT,
+    first_name STRING,
+    last_name STRING,
+    email STRING,
+    phone_number STRING,
+    hire_date DATE,
+    job_id INT,
+    salary DECIMAL(8,2),
+    manager_id INT,
+    department_id INT
+)
+STORED AS PARQUET;
+
+-- Таблица зависимых лиц
+CREATE TABLE IF NOT EXISTS dependents (
+    dependent_id INT,
+    first_name STRING,
+    last_name STRING,
+    relationship STRING,
+    employee_id INT
+)
+STORED AS PARQUET;
+
+-- Таблица истории работы
+CREATE TABLE IF NOT EXISTS job_history (
+    employee_id INT,
+    hire_date DATE,
+    job_id INT
+)
+STORED AS PARQUET;

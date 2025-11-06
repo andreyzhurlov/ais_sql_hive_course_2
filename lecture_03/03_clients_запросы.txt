@@ -1,0 +1,121 @@
+-- 1. Получить всех клиентов из города Moskva
+SELECT * FROM store.clients
+WHERE city = 'Moskva';
+
+-- 2. Найти клиентов, у которых имя Ivan и город Kazan
+SELECT * FROM store.clients
+WHERE first_name = 'Ivan' AND city = 'Kazan';
+
+-- 3. Найти клиентов из Voronezh или Samara
+SELECT * FROM store.clients
+WHERE city = 'Voronezh' OR city = 'Samara';
+
+-- 4. Выбрать клиентов, родившихся после 1990 года
+SELECT * FROM store.clients
+WHERE birth_date > DATE '1990-01-01';
+
+-- 5. Получить клиентов, у которых email заканчивается на '@example.com'
+SELECT * FROM store.clients
+WHERE email LIKE '%@example.ru';
+
+-- 6. Найти клиентов, у которых имя начинается с буквы 'A'
+SELECT * FROM store.clients
+WHERE first_name LIKE 'A%';
+
+-- 7. Найти клиентов, у которых фамилия не начинается на 'S'
+SELECT * FROM store.clients
+WHERE last_name NOT LIKE 'S%';
+
+-- 8. Найти клиентов, у которых имя длиной 5 символов
+SELECT * FROM store.clients
+WHERE LENGTH(first_name) = 5;
+
+-- 9. Получить клиентов, город которых в списке
+SELECT * FROM store.clients
+WHERE city IN ('Moskva', 'Kazan');
+
+-- 10. Получить клиентов, не из указанных городов
+SELECT * FROM store.clients
+WHERE city NOT IN ('Voronezh', 'Samara');
+
+-- 11. Найти клиентов, у которых в имени есть подстрока 'na'
+SELECT * FROM store.clients
+WHERE first_name LIKE '%na%';
+
+-- 12. Получить клиентов, родившихся между 1980 и 1990
+SELECT * FROM store.clients
+WHERE birth_date BETWEEN DATE '1980-01-01' AND DATE '1990-12-31';
+
+-- 13. Найти клиентов с неуказанным телефоном
+SELECT * FROM store.clients
+WHERE phone IS NULL OR phone = '';
+
+-- 14. Выбрать клиентов, у которых email не содержит слово 'test'
+SELECT * FROM store.clients
+WHERE email NOT LIKE '%test%';
+
+-- 15. Получить список городов без повторений
+SELECT DISTINCT city FROM store.clients;
+
+-- 16. Найти клиентов, у которых фамилия заканчивается на 'ova'
+SELECT * FROM store.clients
+WHERE last_name LIKE '%ova';
+
+-- 17. Вывести полное имя клиента (имя + фамилия) и email
+SELECT CONCAT(first_name, ' ', last_name) AS full_name, email
+FROM store.clients;
+
+-- 18. Выбрать клиентов, у которых в имени есть 'e' или фамилия начинается на 'K'
+SELECT * FROM store.clients
+WHERE first_name LIKE '%e%' OR last_name LIKE 'K%';
+
+-- 19. Вывести клиентов, у которых фамилия внтури содержит две буквы 'o' через одну любую букву
+SELECT * FROM store.clients
+WHERE last_name LIKE '%o_o%';
+
+-- 20. Сортировка по дате рождения (от самых старших к младшим)
+SELECT id, first_name, last_name, birth_date
+FROM store.clients
+WHERE birth_date IS NOT NULL
+ORDER BY birth_date ASC;
+
+-- 21. Сортировка по городу (по алфавиту) и внутри каждого города по фамилии клиента
+SELECT id, first_name, last_name, city
+FROM store.clients
+ORDER BY city ASC, last_name ASC;
+
+--Возрастные группы
+SELECT
+    id,
+    first_name,
+    last_name,
+    birth_date,
+    EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date)) AS age,
+    CASE
+        WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date)) < 18 THEN 'menee 18'
+        WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date)) BETWEEN 18 AND 24 THEN '18 - 24'
+        WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date)) BETWEEN 25 AND 39 THEN '25 - 39'
+	WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date)) BETWEEN 40 AND 55 THEN '40 - 55'
+        WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date)) BETWEEN 56 AND 70 THEN '56 - 70'
+        ELSE 'Pensioner'
+    END AS age_group
+FROM
+    store.clients;
+-----------------------------------------------------------------------
+-- Задачи
+-----------------------------------------------------------------------
+
+
+
+-- 1. Найдите клиентов, у которых номер телефона начинается на '+7926' и фамилия длиннее 7 символов.
+
+-- 2. Найдите клиентов, у которых указано имя, но не указана дата рождения.
+
+-- 3. Выведите список клиентов, добавив поле full_contact, которое объединяет имя, фамилию и телефон
+
+-- 4. Сортировка клиентов по городу в обратном алфавитном порядке, затем по дате рождения (младшие первыми)
+
+-- * 5. Вывести клиентов, отсортированных по длине их имени (от самых коротких к самым длинным)
+
+--CASE
+--Напишите запрос для определения - город клиента это Столица или Регион

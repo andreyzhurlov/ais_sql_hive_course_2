@@ -1,0 +1,34 @@
+CREATE OR REPLACE PROCEDURE dev.aggregate_city_orders_by_year(target_year INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Создание таблицы, если ещё не существует
+    CREATE TABLE IF NOT EXISTS dev.city_orders_agg (
+        row_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        year INT,
+        city VARCHAR(50),
+        total_items_ordered INT,
+        total_order_amount DECIMAL(12,2)
+    );
+
+    -- Удаление старых данных за указанный год
+    DELETE FROM dev.city_orders_agg
+    WHERE year = target_year;
+
+    -- Вставка агрегированных данных
+    INSERT INTO dev.city_orders_agg (year, city, total_items_ordered, total_order_amount)
+    SELECT
+        target_year,
+        c.city,
+        SUM(o.order_qty) AS total_items_ordered,
+        SUM(o.order_ammount) AS total_order_amount
+    FROM
+        dev.orders o
+    JOIN
+        dev.clients c ON o.client_id = c.id
+    WHERE
+        EXTRACT(YEAR FROM o.order_date) = target_year
+    GROUP BY
+        c.city;
+END;
+$$;

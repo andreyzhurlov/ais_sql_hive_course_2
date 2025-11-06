@@ -1,0 +1,236 @@
+
+select
+    emp.first_name
+  , emp.last_name
+  , dept.department_name
+from hr.employees as emp
+left join hr.departments as dept
+on emp.department_id = dept.department_id;
+
+
+
+select
+    emp.first_name
+  , emp.last_name
+  , dept.department_name
+  , loc.city
+from hr.employees as emp
+left join hr.departments as dept
+on emp.department_id = dept.department_id
+left join hr.locations as loc
+on dept.location_id = loc.location_id;
+
+
+
+
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , dept.department_name
+  , loc.city
+from hr.employees as emp
+left join hr.departments as dept
+on emp.department_id = dept.department_id
+left join hr.locations as loc
+on dept.location_id = loc.location_id and
+    emp.employee_id = 200;
+
+  
+
+
+
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , dept.department_name
+  , loc.city
+from hr.employees as emp
+left join hr.departments as dept
+on emp.department_id = dept.department_id
+left join hr.locations as loc
+on dept.location_id = loc.location_id
+where
+   emp.employee_id = 200;
+ 
+------------------------------------------------------------------------------------ 
+select * from hr.jobs;
+
+-- Неявная проверка на вхождение зарплаты сотрудника в настроенный диапазон 
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , emp.salary
+  , emp.job_id
+  , jobs.job_title
+from hr.employees as emp
+left join hr.jobs
+on emp.job_id = jobs.job_id and
+   emp.salary  between jobs.min_salary and jobs.max_salary;
+
+
+
+-- Фильтрация по зарплате в конце запроса, но с выборкой детальной информации из итбалицы jobs
+select
+    emp.employee_id
+  , emp.first_name
+  , emp.last_name
+  , emp.salary
+  , emp.job_id
+  , jobs.job_title
+from hr.employees as emp
+left join hr.jobs
+on emp.job_id = jobs.job_id
+where emp.salary > 10000;
+	
+------------------------------------------------------------------------------------
+
+select
+    emp.first_name as emp_first_name
+  , emp.last_name as emp_last_name
+  , mgr.first_name as mgr_first_name
+  , mgr.last_name as mgr_last_name
+from hr.employees as emp
+left join hr.employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+
+select
+    emp.first_name as emp_first_name
+  , emp.last_name as emp_last_name
+  , mgr.first_name as mgr_first_name
+  , mgr.last_name as mgr_last_name
+from hr.employees as emp
+right join hr.employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+	
+select
+    emp.first_name as emp_first_name
+  , emp.last_name as emp_last_name
+  , mgr.first_name as mgr_first_name
+  , mgr.last_name as mgr_last_name
+from hr.employees as emp
+full join hr.employees as mgr
+    on emp.manager_id = mgr.employee_id;
+	
+	
+select * from hr.employees;
+
+select * from hr.departments;
+
+
+select
+	emp.first_name
+  , emp.last_name
+  , dept.department_name
+from hr.employees as emp
+cross join hr.departments as dept;
+
+
+------------------------------------------------------------------------------------
+-- Подазпросы
+------------------------------------------------------------------------------------
+select last_name, salary
+from hr.employees
+where  salary >
+              (select salary
+               from hr.employees
+               where  employee_id = 110);
+select last_name, salary
+from hr.employees
+where  salary > any
+              (select salary
+               from hr.employees
+               where  last_name = 'Ivanov');
+             
+             
+             
+select last_name, job_id
+from hr.employees
+where  job_id =
+               (select job_id
+                from hr.employees
+                where  employee_id = 110);           
+              
+              
+select last_name, job_id
+from hr.employees
+where  job_id in
+               (select job_id
+                from hr.employees
+                where  last_name = 'Ivanov');
+-- потом переписать на CTE
+select last_name, job_id, salary
+from hr.employees
+where  job_id = 
+               (select job_id
+                from hr.employees
+                where employee_id = 110)
+AND    salary >
+               (select salary
+                from hr.employees
+                where employee_id = 110);
+				
+				
+select * from hr.jobs;
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < any
+                   (select salary
+                    from hr.employees
+                    where  job_id = 6)
+AND    job_id <> 6;
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < all
+                   (select salary
+                    from hr.employees
+                    where  job_id = 6)
+and job_id <> 6;
+-- Вывести сотрудника, который является менеджером и с зарплатой более N
+select  employee_id,
+		salary,
+		last_name
+from hr.employees t1
+where exists
+			(select employee_id
+			  from hr.employees t2
+			 where t2.manager_id = t1.employee_id
+			 and t2.salary > 100000);
+-- Найти такие должности, которых нет среди подчинённых сотрудников
+select *
+from hr.jobs
+where not exists
+				(select * from hr.employees
+				 where employees.job_id = jobs.job_id
+				   and employees.manager_id is not null);
+--Найти всех сотрудников, кто не менеджеры
+select emp.employee_id,
+	   emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select mgr.manager_id
+                           from hr.employees mgr);
+							
+							
+select emp.employee_id,
+	   emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select distinct coalesce(mgr.manager_id, 0)
+                           from hr.employees mgr);
+                          
+select emp.employee_id,
+	   emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select manager_id
+                           from hr.employees mgr
+                          where mgr.manager_id is not null);     
+
+
+
+

@@ -1,0 +1,247 @@
+
+-- 5
+select department_name 
+from hr.departments;
+
+-- 12
+select * 
+from hr.departments;
+
+-- 13
+select department_id, location_id
+from hr.departments;
+
+-- 16
+select last_name, salary, salary + 300
+from hr.employees;
+
+-- 17
+select last_name, salary, 12 * salary + 100
+from hr.employees;
+
+select last_name, salary, 12 * (salary + 100)
+from hr.employees;
+
+-- 18
+select last_name, job_id, salary
+from hr.employees;
+
+-- 19
+select last_name, 12 * salary
+from hr.employees;
+
+-- 21
+SELECT last_name "Name" , salary * 12 "Annual Salary"
+FROM   hr.employees
+where last_name = 'King';
+
+-- 22
+SELECT	 last_name || ' ' || job_id AS "hr.employees"
+FROM 	hr.employees;
+
+-- 24
+SELECT last_name ||' is a '||job_id 
+       AS "Employee Details"
+FROM   hr.employees;
+
+-- 25
+SELECT department_name || " Department's Manager Id: "
+       || manager_id 
+       AS "Department and Manager" 
+FROM hr.departments;
+
+-- 26
+SELECT department_id
+FROM   hr.employees;
+
+SELECT DISTINCT department_id
+FROM   hr.employees;
+
+-- 33
+SELECT employee_id, last_name, job_id, department_id
+FROM   hr.employees
+WHERE  department_id = 90;
+
+-- 34
+SELECT last_name, job_id, department_id
+FROM   hr.employees
+WHERE  last_name = 'Petrov';
+
+SELECT last_name 
+FROM   hr.employees
+WHERE  hire_date = '11-JUL-2008';
+
+-- 36
+SELECT last_name, salary
+FROM   hr.employees
+WHERE  salary <= 30000;
+
+-- 37
+SELECT last_name, salary
+FROM   hr.employees
+--WHERE  salary BETWEEN 25000 AND 35000;
+WHERE  not (salary >= 25000 AND salary <= 35000);
+
+-- 38
+SELECT employee_id, last_name, salary, manager_id
+FROM   hr.employees
+--WHERE  manager_id IN (100, 101, 201);
+WHERE  manager_id = 100 and manager_id = 101 and manager_id = 201;
+
+-- 39
+SELECT first_name
+FROM 	hr.employees
+WHERE	first_name LIKE 'S%';
+
+-- 40
+SELECT last_name
+FROM   hr.employees
+WHERE  last_name LIKE '_o%';
+
+SELECT last_name
+FROM   hr.employees
+WHERE  last_name LIKE '%o%';
+
+-- 41
+SELECT last_name, manager_id
+FROM   hr.employees
+WHERE  manager_id IS NULL;
+
+
+-- 43
+SELECT employee_id, last_name, job_id, salary
+FROM   hr.employees
+WHERE  salary >= 100000
+AND    last_name LIKE '%o%';
+
+-- 44
+SELECT employee_id, last_name, job_id, salary
+FROM   hr.employees
+WHERE  salary >= 10000
+OR     last_name LIKE '%o%';
+
+-- 45
+SELECT last_name, job_id
+FROM   hr.employees
+WHERE  job_id 
+       NOT IN (1, 2, 3, 4, 5);
+
+-- 47
+SELECT last_name, job_id, salary
+FROM   hr.employees
+WHERE  job_id = 1
+OR     job_id = 6
+AND    salary > 15000;
+
+SELECT last_name, job_id, salary
+FROM   hr.employees
+WHERE  (job_id = 1
+OR     job_id = 6)
+AND    salary > 15000;
+
+-- 48
+SELECT   last_name, job_id, department_id, hire_date
+FROM     hr.employees
+ORDER BY hire_date;
+
+-- 49
+SELECT   last_name, job_id, department_id, hire_date
+FROM     hr.employees
+ORDER BY last_name DESC;
+
+SELECT   last_name, job_id, department_id, hire_date
+FROM     hr.employees
+ORDER BY last_name;
+
+SELECT employee_id, last_name, salary*12 year_salary
+FROM   hr.employees
+ORDER BY year_salary;
+
+-- 50
+SELECT   last_name, job_id, department_id, hire_date
+FROM     hr.employees
+ORDER BY 3;
+
+SELECT last_name, department_id, salary
+FROM   hr.employees
+ORDER BY department_id, salary DESC;
+
+-- 53
+SELECT employee_id, first_name
+FROM hr.employees
+ORDER BY employee_id
+LIMIT 10;
+
+SELECT employee_id, first_name
+FROM hr.employees
+ORDER BY employee_id
+LIMIT 5 OFFSET 15;
+
+-- 55
+SELECT employee_id, last_name, salary, department_id
+FROM   hr.employees
+WHERE  employee_id = 100;
+
+-- 69
+SELECT employee_id, last_name, department_id
+FROM   hr.employees
+WHERE  last_name = 'orlova';
+
+SELECT employee_id, last_name, department_id
+FROM   hr.employees
+WHERE  LOWER(last_name) = 'orlova';
+
+-- 71
+SELECT
+    employee_id
+  , first_name || ' ' || last_name as name
+  , CONCAT(first_name,' ',last_name) as name_concat
+  , job_id
+  , LENGTH (first_name || last_name)
+  , SUBSTR(last_name, 3, 3)
+  , POSITION('a' in last_name)
+FROM   hr.employees
+
+
+select * 
+from hr.employees
+where SUBSTR(last_name, 3, 3) = 'lov';
+
+select * 
+from hr.employees
+where last_name like '%lov%';
+
+-- 73
+SELECT last_name,
+  UPPER(SUBSTR (LAST_NAME, 1, 8) || '_RU'),
+  SUBSTR (LAST_NAME, 1, 8) || '_RU',
+  SUBSTR (LAST_NAME, 1, 8)
+FROM   hr.employees
+WHERE  department_id = 6;
+
+-- 75
+SELECT 
+    ROUND(45.923, 2)
+  , ROUND(45.923, 0)
+  , ROUND(45.923,-1);
+
+-- 77
+SELECT last_name, salary, salary % 5000
+FROM   hr.employees
+WHERE  job_id = 6;
+
+-- 78
+SELECT last_name, hire_date
+FROM   hr.employees
+WHERE  hire_date < '2008-02-01';
+
+-- 79
+SELECT date('now');
+
+-- 81
+SELECT last_name, (date('now') - hire_date)/7 AS WEEKS
+FROM   hr.employees
+WHERE  department_id = 9;
+
+
+select lower(upper(last_name)) from hr.employees;
