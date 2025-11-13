@@ -1,0 +1,37 @@
+-- Преобразование временных меток и чисел в Hive
+
+SELECT
+    -- Форматирование текущего времени (только время)
+    date_format(current_timestamp(), 'HH:mm:ss') as current_time
+    
+    -- Форматирование числа в строку (добавляем пробелы слева до 4 знаков)
+  , lpad(cast(125 as string), 4, ' ') as number_formatted
+    
+    -- Форматирование отрицательного числа с десятичной точкой и знаком
+  , concat(format_number(abs(-125.8), 2), if(-125.8 < 0, '-', '')) as decimal_with_sign
+    
+    -- Преобразование строки в дату
+  , to_date(from_unixtime(unix_timestamp('05 Dec 2000', 'dd MMM yyyy'))) as string_to_date
+    
+    -- Преобразование строки в число (убираем запятые и минус)
+  , cast(regexp_replace(regexp_replace('12,454.8-', ',', ''), '-', '') as decimal(10,1)) * -1 as string_to_number
+    
+    -- Преобразование строки в timestamp
+  , from_unixtime(unix_timestamp('05 Dec 2000', 'dd MMM yyyy')) as string_to_timestamp;
+
+
+-- =====================================
+-- Преобразование к DATE
+-- =====================================
+
+-- Вариант 1: Простое приведение типа
+SELECT CAST('2025-06-17' AS DATE) as date_cast;
+
+-- Вариант 2: Функция to_date
+SELECT to_date('2025-06-17') as date_simple;
+
+-- Вариант 3: С указанием формата (через unix_timestamp)
+SELECT to_date(from_unixtime(unix_timestamp('17-06-2025', 'dd-MM-yyyy'))) as date_formatted;
+
+-- Вариант 4: Напрямую с форматом (Hive 3.0+)
+SELECT to_date('17-06-2025', 'dd-MM-yyyy') as date_with_format;
