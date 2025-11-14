@@ -378,5 +378,38 @@ order by  department_id
         , cg_employee_id;
   
   
-  
+-------------------------------
+-------------------------------
+
+-- Задание 1: Найти клиентов, которые сделали заказы на такие товары, 
+-- которые также заказывали клиенты из города "Kazan"
+select distinct t4.*
+  from store.orders t3
+  join store.clients t4
+    on t3.client_id = t4.id
+where t3.item_name in (
+                        select distinct t1.item_name 
+                          from store.orders t1
+                          join store.clients t2
+                            on t1.client_id = t2.id
+                           and t2.city = 'Kazan'
+                      )
+  and t4.city != 'Kazan';
+
+-- Задание 4: Найти имена клиентов, у которых 
+-- заказ был сделан позже всех заказов клиента с id = 10
+select distinct 
+        --t3.order_date
+       t4.*
+  from store.orders t3
+  join store.clients t4
+    on t3.client_id = t4.id
+where t3.order_date > all (
+                            select distinct
+                                  t1.order_date
+                             from store.orders t1
+                            where t1.client_id = 10
+                          );
+
+
 
