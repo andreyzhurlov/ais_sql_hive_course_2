@@ -211,9 +211,172 @@ order by  t1.department_id
 ----------------------------------------
 
 select * from store.clients;
+
+
+----------------------------------------
+-- Задание 6: Вывести клиентов, их город, из возраст, их возрастную группу (ранее решали), 
+-- список всех товаров, которые они заказывали, дату заказа
+
+select 
+    CONCAT(t1.first_name, ' ', t1.last_name, ' | ', t1.email) as client_info
+  , t1.birth_date
+  , case
+      when year(current_date()) - year(t1.birth_date) between 17 and 35 then 'yang'
+      when year(current_date()) - year(t1.birth_date) between 36 and 49 then 'middle age'
+      when year(current_date()) - year(t1.birth_date) >= 50  then '50+'
+      else 'not define' 
+    end as age_group 
+  , FLOOR(DATEDIFF(current_date, t1.birth_date)/365) as age_2
+  , t1.city
+  , t2.item_name
+  , t2.order_date
+  from store.clients t1
+  join store.orders t2
+    on t1.id = t2.client_id
+  order by t2.order_date desc
   
-
-
-
-
+  ----------------------------------------------------------
+  -----------------------------------------------------------
+  
+  ------------------------------------------------------------------------------------
+-- Подазпросы
+------------------------------------------------------------------------------------
+select last_name, salary
+from hr.employees
+where  salary >
+              (select salary
+               from hr.employees
+               where  employee_id = 110);
+               
+               
+select last_name, salary
+from hr.employees
+where  salary > any
+              (select salary
+               from hr.employees
+               where  last_name = 'Ivanov');
+             
+             
+             
+select last_name, job_id
+from hr.employees
+where  job_id =
+               (select job_id
+                from hr.employees
+                where  employee_id = 110);           
+              
+              
+select last_name, job_id
+from hr.employees
+where  job_id in
+               (select job_id
+                from hr.employees
+                where  last_name = 'Ivanov');
+-- потом переписать на CTE
+select last_name, job_id, salary
+from hr.employees
+where  job_id = 
+               (select job_id
+                from hr.employees
+                where employee_id = 110)
+AND    salary >
+               (select salary
+                from hr.employees
+                where employee_id = 110);
+                
+                
+select * from hr.jobs;
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < any
+                   (select salary
+                    from hr.employees
+                    where  job_id = 6)
+AND    job_id <> 6;
+select employee_id, last_name, job_id, salary
+from hr.employees
+where  salary < all
+                   (select salary
+                    from hr.employees
+                    where  job_id = 6)
+and job_id <> 6;
+-- Вывести сотрудника, который является менеджером и с зарплатой более N
+select  employee_id,
+        salary,
+        last_name
+from hr.employees t1
+where exists
+            (select employee_id
+              from hr.employees t2
+             where t2.manager_id = t1.employee_id
+             and t2.salary > 100000);
+-- Найти такие должности, которых нет среди подчинённых сотрудников
+select *
+from hr.jobs
+where not exists
+                (select * from hr.employees
+                 where employees.job_id = jobs.job_id
+                   and employees.manager_id is not null);
+--Найти всех сотрудников, кто не менеджеры
+select emp.employee_id,
+       emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select mgr.manager_id
+                           from hr.employees mgr);
+                            
+                            
+select emp.employee_id,
+       emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select distinct coalesce(mgr.manager_id, 0)
+                           from hr.employees mgr);
+                          
+select emp.employee_id,
+       emp.last_name
+from hr.employees emp
+where  emp.employee_id not in
+                          (select manager_id
+                           from hr.employees mgr
+                          where mgr.manager_id is not null);  
+                          
+                          
+select 
+      emp.employee_id
+    , (select dep.department_name 
+         from hr.departments dep 
+        where dep.department_id = emp.department_id) as department_name
+  from hr.employees emp
+  
+---------------------------------------------
+---------------------------------------------
+select
+      department_id
+    , department_name
+    , employee_id
+    , last_name
+    , cg_employee_id
+    , cg_last_name
+from (
+      select 
+          t1.department_id
+        , t3.department_name
+        , t1.employee_id as employee_id
+        , t1.last_name as last_name
+        , t2.employee_id as cg_employee_id
+        , t2.last_name as cg_last_name
+        from hr.employees t1
+        join hr.employees t2
+          on t1.department_id = t2.department_id
+        join hr.departments t3
+          on t1.department_id = t3.department_id
+      where t1.employee_id != t2.employee_id
+      ) as sub_q
+order by  department_id
+        , employee_id
+        , cg_employee_id;
+  
+  
+  
 
