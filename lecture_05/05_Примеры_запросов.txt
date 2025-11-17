@@ -152,8 +152,6 @@ from   hr.employees;
 select avg(commission_pct)
 from   hr.employees;
 
-select avg(coalesce(commission_pct, 0))
-from   hr.employees;
 
 -- 13
 select department_id,
