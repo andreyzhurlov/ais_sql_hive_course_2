@@ -135,7 +135,7 @@ from   hr.employees;
 -- 8
 select count(*)
 from   hr.employees
-where  department_id = 50;
+where  department_id = 5;
 --
 select count(*)
   from store.clients;
@@ -169,7 +169,7 @@ select department_id,
        job_id,
        sum(salary)
 from   hr.employees
-where  department_id > 40
+where  department_id > 5
 group  by department_id,
           job_id
 order  by department_id;
@@ -194,7 +194,7 @@ group  by department_id;
 select department_id,
        avg(salary)
 from   hr.employees
-where  avg(salary) > 8000
+where  avg(salary) > 80000
 group  by department_id;
 
 -- 21
@@ -202,7 +202,7 @@ select department_id,
        max(salary)
 from   hr.employees
 group  by department_id
-having max(salary) > 10000;
+having max(salary) > 100000;
 
 -- 22
 select job_id,
