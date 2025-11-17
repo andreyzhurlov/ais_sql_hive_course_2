@@ -136,10 +136,13 @@ from   hr.employees;
 select count(*)
 from   hr.employees
 where  department_id = 50;
+--
+select count(*)
+  from store.clients;
+--
+select count(birth_date)
+  from store.clients;
 
-select count(commission_pct)
-from   hr.employees
-where  department_id = 50;
 
 -- 9
 select count(distinct department_id)
