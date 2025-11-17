@@ -135,7 +135,7 @@ from   hr.employees;
 -- 8
 select count(*)
 from   hr.employees
-where  department_id = 5;
+where  department_id = 50;
 --
 select count(*)
   from store.clients;
@@ -169,7 +169,7 @@ select department_id,
        job_id,
        sum(salary)
 from   hr.employees
-where  department_id > 5
+where  department_id > 40
 group  by department_id,
           job_id
 order  by department_id;
@@ -194,7 +194,7 @@ group  by department_id;
 select department_id,
        avg(salary)
 from   hr.employees
-where  avg(salary) > 80000
+where  avg(salary) > 8000
 group  by department_id;
 
 -- 21
@@ -202,23 +202,23 @@ select department_id,
        max(salary)
 from   hr.employees
 group  by department_id
-having max(salary) > 100000;
+having max(salary) > 10000;
 
 -- 22
 select job_id,
        sum(salary) PAYROLL
 from   hr.employees
-where  job_id not like '%REP%'
+where  job_id != 5
 group  by job_id
-having sum(salary) > 13000
+having sum(salary) > 130000
 order  by payroll;
 
 select job_id,
        sum(salary) PAYROLL
 from   hr.employees
-where  job_id not like '%REP%'
+where  job_id != 5
 group  by job_id
-having sum(salary) > 13000
+having sum(salary) > 130000
 order  by sum(salary);
 
 -- 23
