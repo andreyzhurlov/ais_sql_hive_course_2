@@ -1,0 +1,139 @@
+-----------------------------------------------------------------------------
+-- UNION / UNION ALL
+-----------------------------------------------------------------------------
+
+/*
+Задание 1: Использовать UNION
+Описание:
+Вывести список всех клиентов, которые:
+
+либо из города "Moskva",
+
+либо сделали хотя бы один заказ на товар "smartphone".
+
+Каждого клиента показать только один раз (т.е. без повторов, используем UNION).
+*/
+
+select 
+       c.id as client_id
+  from store.clients c
+ where c.city = 'Moskva'
+union
+select distinct
+       o.client_id
+  from store.orders o
+ where item_name = 'smartphone'
+order by client_id;
+
+
+
+
+/*
+Задание 2: Использовать UNION ALL
+Описание:
+Составить список заказов, в котором:
+
+сначала идут все заказы на товар laptop,
+
+затем — все заказы на товар tablet.
+
+Поскольку один клиент мог заказывать и то, и другое — возможны повторы (поэтому UNION ALL).
+*/
+select o.order_id,
+       o.order_date
+  from store.orders o
+ where o.item_name = 'laptop'
+ UNION ALL
+ select o.order_id,
+        o.order_date
+  from store.orders o
+ where o.item_name = 'tablet';
+
+-----------------------------------------------------------------------------
+-- CTE
+-----------------------------------------------------------------------------
+
+-- Задание 1. Вывести клиентов, у которых 
+-- есть хотя бы один заказ с товаром smartphone или laptop, 
+-- и отметить их как VIP, 
+-- остальных как "обычный" (ordinary)
+
+with cte_vip as (
+  select distinct
+         o.client_id
+      ,  'VIP' as client_type
+    from store.orders o
+   where o.item_name in ('smartphone', 'laptop')
+)
+,cte_not_vip as (
+  select distinct
+        o.client_id  
+      , 'not vip' as client_type
+    from store.orders o
+    left 
+    join cte_vip c
+      on o.client_id = c.client_id
+   where o.item_name not in ('smartphone', 'laptop')
+     and c.client_id is null
+)
+,cte_all_clients as (
+  select client_id
+      ,  client_type
+   from cte_vip
+  union all
+  select client_id
+      ,  client_type
+   from cte_not_vip
+)
+select 
+      t1.client_id
+    , t1.client_type
+    , concat(t2.first_name, ' ', t2.last_name, ' | ', t2.email) as client_info
+  from cte_all_clients t1
+  join store.clients t2
+    on t1.client_id = t2.id
+order by t1.client_id;
+
+
+  select 
+         o.client_id
+      ,  'VIP' as client_type
+    from store.orders o
+   where o.item_name in ('smartphone', 'laptop')
+  group by o.client_id;
+
+
+-- Задание 3: Общее количество, сумма заказов и среднее значение заказа, 
+-- по возрастным группам
+-- в Порядке убывания по сумме заказов
+
+with cte_detailed_orders as (
+  select 
+      case
+        when year(current_date()) - year(t1.birth_date) between 17 and 35 then '17 - 35'
+        when year(current_date()) - year(t1.birth_date) between 36 and 49 then '36 - 49'
+        when year(current_date()) - year(t1.birth_date) >= 50  then '50+'
+        else 'not define' 
+      end as age_group 
+    , t2.order_id
+    , t2.order_ammount
+    from store.clients t1
+    join store.orders t2
+      on t1.id = t2.client_id
+)
+,cte_totals as (
+  select 
+        age_group 
+      , count(distinct order_id) as orders_qty
+      , sum(order_ammount) as orders_total_amount
+      , avg(order_ammount) as orders_avg_amount
+    from cte_detailed_orders
+    group by age_group
+)
+select 
+        age_group 
+      , orders_qty
+      , orders_total_amount
+      , orders_avg_amount
+  from cte_totals 
+ order by orders_total_amount desc;
