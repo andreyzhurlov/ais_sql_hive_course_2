@@ -1,0 +1,88 @@
+-----------------------------------------------------------------
+
+
+
+/*
+Задание 1.
+Для каждого департамента определить сотрудника с самой высокой зарплатой,
+вторым, третьим и т.д. 
+а затем отобрать топ-2 зарплаты по каждому отделу.
+*/
+with cte_emp_rn as (
+  select
+         t1.department_id,
+         t1.employee_id,
+         concat(t1.first_name, ' ', t1.last_name) as fio,
+         t1.salary,
+         dense_rank() over (partition by t1.department_id order by t1.salary DESC) as rn
+    from hr.employees t1
+)
+select 
+        t1.department_id,
+        t2.department_name,
+        t1.employee_id,
+        t1.fio,
+        t1.salary,
+        t1.rn
+  from cte_emp_rn t1
+  join hr.departments t2
+    on t1.department_id = t2.department_id
+ where t1.rn <= 2;
+
+-----------------------------------------------------------------
+
+with cte_emp_rn as (
+  select
+         t1.department_id,
+         t1.employee_id,
+         concat(t1.first_name, ' ', t1.last_name) as fio,
+         t1.salary,
+         dense_rank() over (partition by t1.department_id order by t1.salary DESC) as rn
+    from hr.employees t1
+)
+select 
+        t1.department_id,
+        t2.department_name,
+        max(t1.salary) as salary
+  from cte_emp_rn t1
+  join hr.departments t2
+    on t1.department_id = t2.department_id
+ where t1.rn <= 2 
+ group by t1.department_id, t2.department_name, t1.rn;
+
+
+--
+
+/*
+Задание 2.
+Для каждого клиента посчитать:
+нарастающую сумму (running_total) и
+скользящее среднее за последние 3 заказа (rolling_avg)
+>> Сумум заказа нужно считать с учётом всех товаров внутри него
+*/
+
+with cte_clint_orders_total as (
+  select  o.client_id, 
+          o.order_id, 
+          o.order_date,
+          sum(o.order_ammount) as order_total
+    from store.orders o
+   group by o.client_id, 
+            o.order_id, 
+            o.order_date
+)
+select  client_id, 
+        order_id, 
+        order_date,
+        order_total,
+        SUM(order_total) over (
+          partition by client_id
+          order by order_date
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) running_total,
+        AVG(order_total) over (
+          partition by client_id
+          order by order_date
+          ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+        ) rolling_avg
+  from cte_clint_orders_total;
