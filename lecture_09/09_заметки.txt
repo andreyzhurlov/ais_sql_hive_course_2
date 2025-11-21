@@ -1,0 +1,70 @@
+/*
+Задание 3.
+В каждом городе назначить ранг клиентам по сумме заказов, 
+включая одинаковые ранги при равных значениях.
+>> Сумум заказа нужно считать с учётом всех товаров внутри него
+*/
+
+with cte_client_order_totals as (
+  select
+         c.city
+        ,o.client_id
+        ,sum(o.order_ammount) as order_total
+    from store.orders o
+    join store.clients c
+      on o.client_id = c.id
+   group by c.city, o.client_id
+)
+  select 
+          city
+        , client_id
+        , order_total
+        , dense_rank() over (
+            partition by city 
+            order by order_total desc
+          ) as rn
+    from cte_client_order_totals;
+
+
+--
+
+/*
+Задание 4.
+Для каждого клиента сравнить сумму заказа с предыдущим заказом по дате.
+Отметить одним из трёх признаков: 'N/A', 'Higher', 'Not higher'
+>> Сумум заказа нужно считать с учётом всех товаров внутри него
+*/
+
+with cte_client_order_totals as (
+  select
+          o.client_id
+        , o.order_id
+        , o.order_date
+        , sum(o.order_ammount) as order_total
+    from store.orders o
+   group by o.client_id, o.order_id, o.order_date
+)
+,cte_client_prev_orders as (
+  select 
+          t1.client_id
+        , t1.order_id
+        , t1.order_date
+        , t1.order_total
+        , lag(order_total) over (
+            partition by client_id
+            order by t1.order_date
+        ) as prev_order_total
+    from cte_client_order_totals t1
+)
+select 
+        t1.client_id
+      , t1.order_id
+      , t1.order_date
+      , t1.order_total
+      , t1.prev_order_total
+      , case
+          when t1.order_total > t1.prev_order_total then 'Higher'
+          when t1.order_total <= t1.prev_order_total then 'Not Higher'
+          else 'N/A'
+        end as order_category
+  from cte_client_prev_orders t1;
