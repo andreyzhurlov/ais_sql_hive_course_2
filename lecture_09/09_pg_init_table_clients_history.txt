@@ -1,0 +1,49 @@
+CREATE SCHEMA IF NOT EXISTS store;
+
+DROP TABLE IF EXISTS store.clients_history;
+
+CREATE TABLE IF NOT EXISTS store.clients_history (
+    row_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id INT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    city VARCHAR(50),
+    start_date DATE,
+    end_date DATE
+);
+
+INSERT INTO store.clients_history (
+    id, first_name, last_name, birth_date, email, phone, city, start_date, end_date
+)
+VALUES
+-- Клиенты с двумя версиями по периодам
+(1, 'Ivan', 'Ivanov', '1990-05-12', 'ivan.ivanov@example.com', '+79261234567', 'Moskva', '2024-01-01', '2024-06-30'),
+(1, 'Ivan', 'Ivanov', '1990-05-12', 'ivan.ivanov@example.com', '+79261234567', 'Tula',   '2024-07-01', '2050-12-31'),
+
+(2, 'Petr', 'Petrov', '1985-03-08', 'petr.petrov@example.ru', '+79267654321', 'Kazan',   '2024-01-01', '2024-06-30'),
+(2, 'Petr', 'Petrov', '1985-03-08', 'petr.petrov@example.ru', '+79267654321', 'Perm',    '2024-07-01', '2050-12-31'),
+
+(3, 'Sergey', 'Smirnov', '1992-07-15', 'sergey.smirnov@example.com', '+79263456789', 'Voronezh', '2024-01-01', '2024-06-30'),
+(3, 'Sergey', 'Smirnov', '1992-07-15', 'sergey.smirnov@example.com', '+79263456789', 'Saratov',  '2024-07-01', '2050-12-31'),
+
+-- Остальные клиенты (с одним периодом)
+(4, 'Aleksey', 'Sidorov', '1988-12-01', 'aleksey.sidorov@example.com', '+79267894561', 'Samara', '2024-01-01', '2050-12-31'),
+(5, 'Dmitriy', 'Kuznetsov', '1995-06-23', 'dmitriy.kuznetsov@example.com', '+79264561239', 'Moskva', '2024-01-01', '2050-12-31'),
+(6, 'Yuriy', 'Zhukov', NULL, 'yuriy.zhukov@example.com', '+79265678901', 'Kazan', '2024-01-01', '2050-12-31'),
+(7, 'Oleg', 'Vasilev', '1979-02-17', 'oleg.vasilev@example.com', NULL, 'Voronezh', '2024-01-01', '2050-12-31'),
+(8, 'Igor', 'Tikhonov', '1987-10-05', 'igor.tikhonov@example.com', '+79261112233', 'Moskva', '2024-01-01', '2050-12-31'),
+(9, 'Roman', 'Nikolaev', '1993-04-19', 'roman.nikolaev@example.ru', '+79267778899', 'Saratov', '2024-01-01', '2050-12-31'),
+(10, 'Viktor', 'Belyaev', '1983-11-22', 'viktor.belyaev@example.com', '+79262223344', 'Kazan', '2024-01-01', '2050-12-31'),
+(11, 'Elena', 'Orlova', '1991-06-14', 'elena.orlova@example.com', NULL, 'Moskva', '2024-01-01', '2050-12-31'),
+(12, 'Anna', 'Sokolova', NULL, 'anna.sokolova@example.com', '+79264445566', 'Samara', '2024-01-01', '2050-12-31'),
+(13, 'Maria', 'Alekseeva', '1996-01-03', 'maria.alekseeva@example.com', '+79265556677', 'Voronezh', '2024-01-01', '2050-12-31'),
+(14, 'Olga', 'Sergeeva', '1989-12-28', 'olga.sergeeva@example.com', '+79266667788', 'Kazan', '2024-01-01', '2050-12-31'),
+(15, 'Natalya', 'Romanova', '1994-07-06', 'natalya.romanova@example.ru', '', 'Moskva', '2024-01-01', '2050-12-31'),
+(16, 'Tatyana', 'Morozova', '1982-10-11', 'tatyana.morozova@example.com', '+79268889900', 'Saratov', '2024-01-01', '2050-12-31'),
+(17, 'Svetlana', 'Pavlova', '1986-03-25', 'svetlana.pavlova@example.com', '+79269990011', 'Samara', '2024-01-01', '2050-12-31'),
+(18, 'Vera', 'Kovaleva', '1990-09-17', NULL, NULL, 'Kazan', '2024-01-01', '2050-12-31'),
+(19, 'Lyudmila', 'Egorova', '1981-05-29', 'lyudmila.egorova@example.com', '+79262223344', 'Moskva', '2024-01-01', '2050-12-31'),
+(20, 'Alla', 'Grigorieva', '1997-02-13', 'alla.grigorieva@example.com', '+79263334455', 'Samara', '2024-01-01', '2050-12-31');

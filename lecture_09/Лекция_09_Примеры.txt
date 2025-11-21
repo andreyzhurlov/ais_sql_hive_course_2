@@ -1,0 +1,162 @@
+--------------------------------------------------------------------------
+-- Работа с переменными
+--------------------------------------------------------------------------
+
+-- Создание таблицы с партициями
+CREATE TABLE store.orders_part_v2 (
+    order_id INT,
+    order_qty INT,
+    order_ammount DECIMAL(10,2),
+    item_name STRING,
+    client_id INT
+)
+PARTITIONED BY (
+    year INT,
+    month INT,
+    day INT
+)
+STORED AS ORC;
+
+
+-- Вставка данных в партицированную таблицу
+INSERT OVERWRITE TABLE store.orders_part_v2
+PARTITION (year, month, day)
+SELECT
+    order_id,
+    order_qty,
+    order_ammount,
+    item_name,
+    client_id,
+    YEAR(order_date)  AS year,
+    MONTH(order_date) AS month,
+    DAY(order_date)   AS day
+FROM store.orders;
+
+
+-- Изменение партиции
+
+-- Вариант 1: полностью удалить и вставить заново
+-- 1. Удалить старую партицию:
+ALTER TABLE store.orders DROP IF EXISTS PARTITION (
+    year = 2025,
+    month = 4,
+    day = 30
+);
+
+-- 2. Вставить новые данные в эту партицию:
+INSERT INTO TABLE store.orders PARTITION (year, month, day)
+SELECT
+    order_id,
+    order_qty,
+    order_ammount,
+    item_name,
+    client_id,
+    2025 AS year,
+    4 AS month,
+    30 AS day
+FROM staging.orders_delta
+WHERE order_date = DATE '2025-04-30';
+
+
+-- Вариант 2: просто перезаписать партицию (если ты знаешь, что она перезапишется)
+INSERT OVERWRITE TABLE store.orders PARTITION (year, month, day)
+SELECT
+    order_id,
+    order_qty,
+    order_ammount,
+    item_name,
+    client_id,
+    2025 AS year,
+    4 AS month,
+    30 AS day
+FROM staging.orders_delta
+WHERE order_date = DATE '2025-04-30';
+
+
+-- Вычисление хэша значений колонок у строки
+SELECT
+  *,
+  sha2(CONCAT_WS('|', CAST(id AS STRING), first_name, last_name), 256) AS row_hash
+FROM store.clients;
+
+
+--------------------------------------------------------------------------
+-- Переменные
+--------------------------------------------------------------------------
+
+
+-- Пример использования переменной окружения
+SELECT '${env:USER}' AS current_user;
+
+
+-- Устанавливаем переменные
+SET hivevar:target_year=2024;
+SET hivevar:target_city='Moskva';
+
+
+-- Используем переменные в запросе
+SELECT 
+    c.client_id,
+    c.first_name,
+    c.last_name,
+    c.city,
+    o.order_id,
+    o.order_date,
+    o.order_ammount
+FROM store.clients c
+JOIN store.orders o ON c.client_id = o.client_id
+WHERE year(o.order_date) = ${hivevar:target_year}
+  AND c.city = '${hivevar:target_city}';
+
+
+-- Переменная для нового имени таблицы
+SET hivevar:target_year=2024;
+SET hivevar:table_name=store.orders_${hivevar:target_year};
+
+-- Создание таблицы по году
+CREATE TABLE ${table_name} AS
+SELECT *
+FROM store.orders
+WHERE year(order_date) = ${target_year};
+
+
+
+Есть две дельты данных.
+Сначала загрузили Дельту 1, а позже загрузили Дельту 2, в которой поменялась строка с id = 2 и добавилась строка с id = 3.
+Нужно написать запрос, который вернёт актуальное состояние данных.
+
+--1--
+id    val1    val2
+1    100        A
+2    201        B
+
+--2--
+id    val1    val2
+2    202        T
+3    301        F
+
+----------------
+id    val1    val2
+1    100        A
+2    202        T
+3    301        F
+*/
+
+
+with wt_1 as (
+select 1 as id, 100 as val1, 'A' as val2 
+union all
+select 2 as id, 201 as val1, 'B' as val2
+),
+wt_2 as (
+select 2 as id, 202 as val1, 'T' as val2 
+union all
+select 3 as id, 301 as val1, 'F' as val2
+)
+select
+...
+from
+
+--------------------------------------------------------------------------
+-- Работа с дельтами данных
+--------------------------------------------------------------------------
